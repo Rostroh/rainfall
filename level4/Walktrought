@@ -1,0 +1,19 @@
+Lorsqu'on disass le programe du level4, on voit que dans une des fonctions appelées (n), le programme effectue un fgets, puis effectue un printf.
+Ensuite, il compare la valeur d'une variable globale (m) avec 0x1025544. Dans le cas ou m est egale a cette valeur, le programe affiche le password du level5. Notre but est donc de reussir a modifier la valeur de m a l'aide de printf afin d'afficher de password.
+
+Nous allons chercher a trouver le numéro de la string de printf sur la stack.
+
+--insert code pour trouver le numero--
+
+On voit qu'il s'agit de la 12e valeur sur la stack. Ensuite, sous gdb, on trouve l'adresse de m : 0x8049810.
+
+Nous allons maintenant utiliser le format %n afin d'ecrire la valeur souhaitée dans l'adresse de m.
+Afin d'ecrire la valeur sans depasser la taille du buffer, nous allons utiliser la largeur de champ avec un %u.
+Nous pouvons verifier la bonne valeur de m sous gdb avec un breakpoint juste apres le call a pprintf :
+r <<< $(python -c 'print "\x08\x04\x98\x10"[::-1] + "%16930112u" + "%12$ln"')
+x/4x 0x8049810
+
+Afin d'ecrire une valeur sur plusieurs octects, nous utilisons le modificateur de longueur "l"dans notre %n afin d'ecrire sur 4 octets.
+
+Cela nous donne la ligne de commande : 
+python -c 'print "\x08\x04\x98\x10"[::-1] + "%16930112u" + "%12$ln"' | ./level4

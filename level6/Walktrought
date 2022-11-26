@@ -1,0 +1,6 @@
+On effectue tout d'abord un objdump sur l'executable. On voit qu'il y a 3 fonctions, main, m et n.
+Apres avoir desassemblé ces fonctions sous gdb, on voit que n n'est pas appelé, et surtout, que la fonction affiche le pass du level7 avec un call system.
+La fonction main malloc une string et un pointeur sur fonction, avant de copier le premier argument de main dans cette string puis d'appeler m via le pointeur sur fonction.
+Nous allons donc chercher a overflow le buffer de strcpy et ecrite l'adresse de la fonction n a la place de celle de m.
+Nous cherchons donc la valeur a laquelle le buffer overflow sous gdb (72) avant d'ecrire l'adresse de n, ce qui donne l'entré suivante :
+./level6 `python -c 'print "A" * 72 + "\x08\x04\x84\x54"[::-1]'`

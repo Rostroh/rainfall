@@ -1,0 +1,7 @@
+On voit que ce programme open un .pass et stock son contenu dans un buffer.
+Il atoi ensuite le premier parametre de main, et met l'octet de buff equivalent a 0.
+Puis, il compare le premier argument de main avec le buffer. Dans le cas ou la comparaison est reussite, un shell est ouvert.
+
+Si on rentre une string vide en parametre, atoi renvoie 0. Le premier octet du buffer est donc mis a 0, et la comparaison reussie.
+
+./bonus3 ""
